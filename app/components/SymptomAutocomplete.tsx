@@ -14,10 +14,7 @@ type SymptomItem = {
   label: string;
 };
 
-type MatchIndex = {
-  start: number;
-  end: number;
-};
+type MatchIndex = [number, number];
 
 const SUGGESTION_LIMIT = 6;
 
@@ -104,7 +101,7 @@ export function SymptomAutocomplete({
 
         return {
           label: result.item.label,
-          matchIndices: (labelMatch?.indices as MatchIndex[] | undefined) ?? [],
+          matchIndices: (labelMatch?.indices as readonly MatchIndex[] | undefined) ?? [],
         };
       });
   }, [debouncedQuery, fuse, selectedSymptoms]);
