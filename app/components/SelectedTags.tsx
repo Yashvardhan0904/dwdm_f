@@ -5,9 +5,10 @@ import { motion } from "framer-motion";
 type SelectedTagsProps = {
   tags: string[];
   onRemove?: (tag: string) => void;
+  formatTag?: (tag: string) => string;
 };
 
-export function SelectedTags({ tags, onRemove }: SelectedTagsProps) {
+export function SelectedTags({ tags, onRemove, formatTag }: SelectedTagsProps) {
   if (tags.length === 0) {
     return (
       <p className="text-sm text-slate-500">Selected symptoms will appear here.</p>
@@ -25,7 +26,7 @@ export function SelectedTags({ tags, onRemove }: SelectedTagsProps) {
           exit={{ opacity: 0, y: -6, scale: 0.92 }}
           className="inline-flex items-center gap-2 rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-sm font-medium text-sky-900"
         >
-          {tag}
+          {formatTag ? formatTag(tag) : tag}
           {onRemove ? (
             <button
               type="button"

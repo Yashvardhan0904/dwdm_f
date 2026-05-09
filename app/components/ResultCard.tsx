@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import { SelectedTags } from "./SelectedTags";
+import { formatSymptomLabel } from "@/app/data/symptoms";
 
 type ResultCardProps = {
   name: string;
@@ -18,6 +19,9 @@ export function ResultCard({ name, age, gender, symptoms }: ResultCardProps) {
   const [error, setError] = useState("");
   const [disease, setDisease] = useState("-");
   const [confidence, setConfidence] = useState<number | null>(null);
+  const [topPredictions, setTopPredictions] = useState<
+    Array<{ disease: string; confidence: number }>
+  >([]);
   const [retryKey, setRetryKey] = useState(0);
 
   const apiBaseUrl = useMemo(
@@ -49,6 +53,7 @@ export function ResultCard({ name, age, gender, symptoms }: ResultCardProps) {
         const data = (await response.json()) as {
           predicted_disease?: string;
           confidence?: number | null;
+          top_predictions?: Array<{ disease: string; confidence: number }>;
         };
 
         setDisease(data.predicted_disease ?? "Unknown");
@@ -57,6 +62,7 @@ export function ResultCard({ name, age, gender, symptoms }: ResultCardProps) {
             ? Math.max(0, Math.min(100, Math.round(data.confidence)))
             : null,
         );
+        setTopPredictions(Array.isArray(data.top_predictions) ? data.top_predictions : []);
       } catch (fetchError) {
         if ((fetchError as Error).name === "AbortError") {
           return;
@@ -99,7 +105,7 @@ export function ResultCard({ name, age, gender, symptoms }: ResultCardProps) {
 
       <div className="mt-4">
         <p className="mb-2 text-sm font-semibold text-slate-900">Selected Symptoms</p>
-        <SelectedTags tags={symptoms} />
+        <SelectedTags tags={symptoms} formatTag={formatSymptomLabel} />
       </div>
 
       <div className="mt-8 rounded-2xl border border-sky-100 bg-gradient-to-br from-sky-50 to-blue-50 p-5">
@@ -137,6 +143,25 @@ export function ResultCard({ name, age, gender, symptoms }: ResultCardProps) {
         <p className="mt-4 text-sm text-slate-600">
           {error || "This prediction is based on the symptoms provided by you."}
         </p>
+
+        {!loading && !error && topPredictions.length > 0 ? (
+          <div className="mt-4 rounded-xl border border-sky-100 bg-white/70 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Top 3 Predictions
+            </p>
+            <div className="mt-3 space-y-2 text-sm text-slate-700">
+              {topPredictions.map((item, index) => (
+                <div
+                  key={`${item.disease}-${index}`}
+                  className="flex items-center justify-between"
+                >
+                  <span className="font-medium text-slate-900">{item.disease}</span>
+                  <span className="text-slate-600">{Math.round(item.confidence)}%</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
 
         {error ? (
           <button

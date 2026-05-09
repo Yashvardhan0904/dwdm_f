@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
-import { SYMPTOMS } from "@/app/data/symptoms";
+import { SYMPTOMS, formatSymptomLabel } from "@/app/data/symptoms";
 
 import { SelectedTags } from "./SelectedTags";
 import { SymptomAutocomplete } from "./SymptomAutocomplete";
@@ -196,6 +196,7 @@ export function FormCard() {
 
         <SelectedTags
           tags={selectedSymptoms}
+          formatTag={formatSymptomLabel}
           onRemove={(tag) => {
             setSelectedSymptoms((current) =>
               current.filter((symptom) => symptom !== tag),

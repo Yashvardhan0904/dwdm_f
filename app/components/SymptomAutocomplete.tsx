@@ -4,6 +4,8 @@ import Fuse from "fuse.js";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 
+import { formatSymptomLabel } from "@/app/data/symptoms";
+
 type SymptomAutocompleteProps = {
   symptoms: readonly string[];
   selectedSymptoms: string[];
@@ -11,6 +13,7 @@ type SymptomAutocompleteProps = {
 };
 
 type SymptomItem = {
+  value: string;
   label: string;
 };
 
@@ -71,14 +74,14 @@ export function SymptomAutocomplete({
   }, [query]);
 
   const items: SymptomItem[] = useMemo(
-    () => symptoms.map((label) => ({ label })),
+    () => symptoms.map((value) => ({ value, label: formatSymptomLabel(value) })),
     [symptoms],
   );
 
   const fuse = useMemo(
     () =>
       new Fuse(items, {
-        keys: ["label"],
+        keys: ["label", "value"],
         threshold: 0.36,
         ignoreLocation: true,
         includeMatches: true,
@@ -94,13 +97,14 @@ export function SymptomAutocomplete({
 
     return fuse
       .search(debouncedQuery)
-      .filter((item) => !selectedSymptoms.includes(item.item.label))
+      .filter((item) => !selectedSymptoms.includes(item.item.value))
       .slice(0, SUGGESTION_LIMIT)
       .map((result) => {
         const labelMatch = result.matches?.find((match) => match.key === "label");
 
         return {
           label: result.item.label,
+          value: result.item.value,
           matchIndices: (labelMatch?.indices as readonly MatchIndex[] | undefined) ?? [],
         };
       });
@@ -161,7 +165,7 @@ export function SymptomAutocomplete({
             const picked = suggestions[clampedActiveIndex];
 
             if (picked) {
-              handleSelect(picked.label);
+              handleSelect(picked.value);
             }
           }
         }}
@@ -183,12 +187,12 @@ export function SymptomAutocomplete({
               <li className="px-4 py-3 text-sm text-slate-500">No results found.</li>
             ) : (
               suggestions.map((suggestion, index) => (
-                <li key={suggestion.label}>
+                <li key={suggestion.value}>
                   <button
                     type="button"
                     onMouseDown={(event) => {
                       event.preventDefault();
-                      handleSelect(suggestion.label);
+                      handleSelect(suggestion.value);
                     }}
                     className={`w-full px-4 py-3 text-left text-sm transition ${
                       index === clampedActiveIndex
